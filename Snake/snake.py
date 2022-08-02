@@ -7,7 +7,7 @@ from collections import namedtuple
 
 
 pygame.init()
-font = pygame.font.Font('BPdotsSquareBold.otf', 25)
+font = pygame.font.Font('Snake/BPdotsSquareBold.otf', 25)
 
 class Direction(Enum):
     RIGHT = 1
@@ -129,7 +129,7 @@ class SnakeGame:
         pygame.draw.rect(self.display, SNAKE, pygame.Rect(self.food.x+7, self.food.y, 8, 3))
 
         # Open high score file to display on screen
-        with open('snakeScore.txt', "r") as highScoreRead:
+        with open('Snake/snakeScore.txt', "r") as highScoreRead:
             highScore = highScoreRead.readline()
         highScoreRead.close()
 
@@ -176,11 +176,11 @@ if __name__ == '__main__':
             break
     
     # Open high score file and change high score if current game beat it
-    with open('snakeScore.txt', "r") as highScoreRead:
+    with open('Snake/snakeScore.txt', "r") as highScoreRead:
         highScore = highScoreRead.readline()
         if int(highScore) < score:
             highScore = score
-            with open('snakeScore.txt', "w") as highScoreWrite: 
+            with open('Snake/snakeScore.txt', "w") as highScoreWrite: 
                 highScoreWrite.write(str(highScore))
             highScoreWrite.close()
     highScoreRead.close()
