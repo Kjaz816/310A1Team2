@@ -1,7 +1,10 @@
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 import random
 from enum import Enum
 from collections import namedtuple
+
 
 pygame.init()
 font = pygame.font.Font('BPdotsSquareBold.otf', 25)
@@ -20,9 +23,9 @@ SPEED = 10
 # Colours
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-AQUA = (0, 100, 255)
-BLACK = (0, 0, 0)
+CHERRYSTALK = (94, 51, 35)
+SNAKE = (98, 255, 0)
+GRASS = (8, 36, 19)
 
 class SnakeGame:
 
@@ -110,16 +113,29 @@ class SnakeGame:
 
         
     def updateUI(self):
-        # Set background to place
-        self.display.fill(BLACK)
+        # Set background to grass colour
+        self.display.fill(GRASS)
 
         for point in self.snake:
-            pygame.draw.rect(self.display, BLUE, pygame.Rect(point.x, point.y, BLOCKSIZE, BLOCKSIZE))
-            pygame.draw.rect(self.display, AQUA, pygame.Rect(point.x+4, point.y+4, BLOCKSIZE/2, BLOCKSIZE/2))
+            
+            #Draw snake segment
+            pygame.draw.rect(self.display, SNAKE, pygame.Rect(point.x, point.y, BLOCKSIZE, BLOCKSIZE))
+            pygame.draw.rect(self.display, RED, pygame.Rect(point.x, point.y, BLOCKSIZE/2, BLOCKSIZE/2))
 
-        pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCKSIZE, BLOCKSIZE))
+        # Draw a cherry on the fruit position
+        pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x+10, self.food.y+10, BLOCKSIZE/2, BLOCKSIZE/2))
+        pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y+10, 6, 6))
+        pygame.draw.rect(self.display, CHERRYSTALK, pygame.Rect(self.food.x+5, self.food.y, 5, 15))
+        pygame.draw.rect(self.display, SNAKE, pygame.Rect(self.food.x+7, self.food.y, 8, 3))
 
-        text = font.render("Score: " + str(self.score), True, WHITE)
+        # Open high score file to display on screen
+        with open('snakeScore.txt', "r") as highScoreRead:
+            highScore = highScoreRead.readline()
+        highScoreRead.close()
+
+        # Display current score and high score on screen
+        text = font.render("Score: " + str(self.score) + " High Score: " + highScore, True, WHITE)
+        
         self.display.blit(text, [0, 0])
         pygame.display.flip()
 
@@ -141,9 +157,11 @@ class SnakeGame:
         self.head = Point(x, y)
 
     def isHurt(self):
+        # Check if snake head hit a wall
         if self.head.x > self.width - BLOCKSIZE or self.head.x < 0 or self.head.y > self.height - BLOCKSIZE or self.head.y < 0:
             return True
 
+        # Check if snake head hit snake body
         if self.head in self.snake[1:]:
             return True
 
@@ -156,7 +174,16 @@ if __name__ == '__main__':
         gameOver, score, lastDirection = game.playStep(lastDirection)
         if gameOver == True:
             break
+    
+    # Open high score file and change high score if current game beat it
+    with open('snakeScore.txt', "r") as highScoreRead:
+        highScore = highScoreRead.readline()
+        if int(highScore) < score:
+            highScore = score
+            with open('snakeScore.txt', "w") as highScoreWrite: 
+                highScoreWrite.write(str(highScore))
+            highScoreWrite.close()
+    highScoreRead.close()
 
-    print('Final Score', score)
-        
+    print('Final Score', score, 'High Score', highScore)
 pygame.quit()
