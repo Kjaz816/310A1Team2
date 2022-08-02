@@ -106,7 +106,6 @@ class SnakeGame:
         self.clock.tick(SPEED)
         
         # Game over and score
-        print(gameOver, self.score, lastDirection)
         return gameOver, self.score, lastDirection
 
         
