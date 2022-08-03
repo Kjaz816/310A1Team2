@@ -10,6 +10,10 @@ pygame.init()
 WINDOW_WIDTH = 1000
 WINDOW_HEIGHT = 1000
 
+# Colours
+WHITE = (255, 255, 255)
+GRASS = (8, 36, 19)
+
 class breakout_game:
     def __init__(self, width = WINDOW_WIDTH, height = WINDOW_HEIGHT):
         # Set display resolution
@@ -25,6 +29,7 @@ class breakout_game:
 if __name__ == '__main__':
     game = breakout_game()
     while True:
+        gameOver, score = game.play_step()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
