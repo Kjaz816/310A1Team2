@@ -35,6 +35,7 @@ GRASS = (8, 36, 19)
 class snake_game:
 
     def __init__(self, width = WINDOW_WIDTH, height = WINDOW_HEIGHT):
+
         # Set display resolution
         self.width = width
         self.height = height
@@ -65,6 +66,7 @@ class snake_game:
 
 
     def place_food(self):
+
         # Find a random x and y coordinate on the display
         x = random.randint(3, (self.width-GRIDSQUARE)//GRIDSQUARE-3)*GRIDSQUARE
         y = random.randint(3, (self.height-GRIDSQUARE)//GRIDSQUARE-3)*GRIDSQUARE
@@ -78,6 +80,7 @@ class snake_game:
         
 
     def play_step(self, last_direction):
+
         # Get user input
         game_over = False
         for event in pygame.event.get():
@@ -92,10 +95,12 @@ class snake_game:
                 if event.key == pygame.K_LEFT and last_direction is not Direction.RIGHT:
                     self.rotate_snake(last_direction, Direction.LEFT)
                     self.direction = last_direction = Direction.LEFT
+
                 # Right
                 elif event.key == pygame.K_RIGHT and last_direction is not Direction.LEFT:
                     self.rotate_snake(last_direction, Direction.RIGHT)
                     self.direction = last_direction = Direction.RIGHT
+
                 # Up
                 elif event.key == pygame.K_UP and last_direction is not Direction.DOWN:
                     self.rotate_snake(last_direction, Direction.UP)
@@ -133,10 +138,12 @@ class snake_game:
 
         
     def update_ui(self):
+
         # Set background to grass colour
         self.display.fill(GRASS)
 
         for point in self.snake[1:]:
+
             #Draw snake segment
             self.display.blit(snake_segment, (point.x, point.y))
 
@@ -158,6 +165,7 @@ class snake_game:
 
 
     def move(self, direction):
+
         # Get current snake head position
         snake_x_pos = self.head.x
         snake_y_pos = self.head.y
@@ -176,6 +184,7 @@ class snake_game:
 
 
     def is_hurt(self):
+
         # Check if snake head hit a wall
         if self.head.x > self.width - GRIDSQUARE or self.head.x < 0 or self.head.y > self.height - GRIDSQUARE or self.head.y < 0:
             return True
@@ -188,6 +197,7 @@ class snake_game:
 
 
     def rotate_snake(self, last_direction, new_direction):
+
         # Get global image files that make up the snake
         global snake_head
         global snake_segment
