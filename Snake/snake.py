@@ -63,6 +63,7 @@ class snake_game:
         # Place food on level
         self.place_food()
 
+
     def place_food(self):
         # Find a random x and y coordinate on the display
         x = random.randint(3, (self.width-GRIDSQUARE)//GRIDSQUARE-3)*GRIDSQUARE
@@ -75,6 +76,7 @@ class snake_game:
         if self.food in self.snake:
             self.place_food()
         
+
     def play_step(self, last_direction):
         # Get user input
         game_over = False
@@ -154,6 +156,7 @@ class snake_game:
         self.display.blit(text, [0, 0])
         pygame.display.flip()
 
+
     def move(self, direction):
         # Get current snake head position
         snake_x_pos = self.head.x
@@ -171,6 +174,7 @@ class snake_game:
 
         self.head = Point(snake_x_pos, snake_y_pos)
 
+
     def is_hurt(self):
         # Check if snake head hit a wall
         if self.head.x > self.width - GRIDSQUARE or self.head.x < 0 or self.head.y > self.height - GRIDSQUARE or self.head.y < 0:
@@ -181,6 +185,7 @@ class snake_game:
             return True
 
         return False
+
 
     def rotate_snake(self, last_direction, new_direction):
         # Get global image files that make up the snake
