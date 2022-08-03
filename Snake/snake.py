@@ -76,8 +76,9 @@ class snake_game:
         if self.food in self.snake:
             self.place_food()
         
-    def play_step(self, lastDirection):
+    def play_step(self, last_direction):
         # User Input
+        game_over = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -85,49 +86,51 @@ class snake_game:
 
             # Set direction to whichever arrow key is pressed
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and lastDirection is not Direction.RIGHT:
-                    self.rotate_snake(lastDirection, Direction.LEFT)
-                    self.direction = lastDirection = Direction.LEFT
+                if event.key == pygame.K_LEFT and last_direction is not Direction.RIGHT:
+                    self.rotate_snake(last_direction, Direction.LEFT)
+                    self.direction = last_direction = Direction.LEFT
 
-                elif event.key == pygame.K_RIGHT and lastDirection is not Direction.LEFT:
-                    self.rotate_snake(lastDirection, Direction.RIGHT)
-                    self.direction = lastDirection = Direction.RIGHT
+                elif event.key == pygame.K_RIGHT and last_direction is not Direction.LEFT:
+                    self.rotate_snake(last_direction, Direction.RIGHT)
+                    self.direction = last_direction = Direction.RIGHT
 
-                elif event.key == pygame.K_UP and lastDirection is not Direction.DOWN:
-                    self.rotate_snake(lastDirection, Direction.UP)
-                    self.direction = lastDirection = Direction.UP
+                elif event.key == pygame.K_UP and last_direction is not Direction.DOWN:
+                    self.rotate_snake(last_direction, Direction.UP)
+                    self.direction = last_direction = Direction.UP
 
-                elif event.key == pygame.K_DOWN and lastDirection is not Direction.UP:
-                    self.rotate_snake(lastDirection, Direction.DOWN)
-                    self.direction = lastDirection = Direction.DOWN
+                elif event.key == pygame.K_DOWN and last_direction is not Direction.UP:
+                    self.rotate_snake(last_direction, Direction.DOWN)
+                    self.direction = last_direction = Direction.DOWN
                     
         # Move
         self.move(self.direction)
         self.snake.insert(0, self.head)
         
-        # Check if lost
-        game_over = False
+
+
+        # Check if the player hit themself or a wall
         if self.is_hurt():
             game_over = True
-            return game_over, self.score, lastDirection
+            return game_over, self.score, last_direction
         
-        # Take step action
+        # Add 1 to the player score when the snake eats food
         if self.head == self.food:
             self.score += 1
             self.place_food()
             
+        # Remove the last snake segment to move the snake by 1 
         else:
             self.snake.pop()
         
         # Update UI and Clock
-        self.update_UI()
+        self.update_ui()
         self.clock.tick(SPEED)
         
         # Game over and score
-        return game_over, self.score, lastDirection
+        return game_over, self.score, last_direction
 
         
-    def update_UI(self):
+    def update_ui(self):
         # Set background to grass colour
         self.display.fill(GRASS)
 
@@ -142,12 +145,12 @@ class snake_game:
         self.display.blit(snakeFood, (self.food.x, self.food.y))
 
         # Open high score file to display on screen
-        with open(HSFILEPATH, "r") as highScoreRead:
-            highScore = highScoreRead.readline()
-        highScoreRead.close()
+        with open(HSFILEPATH, "r") as high_score_read:
+            high_score = high_score_read.readline()
+        high_score_read.close()
 
         # Display current score and high score on screen
-        text = font.render("Score: " + str(self.score) + " High Score: " + highScore, True, WHITE)
+        text = font.render("Score: " + str(self.score) + " High Score: " + high_score, True, WHITE)
         
         self.display.blit(text, [0, 0])
         pygame.display.flip()
