@@ -26,6 +26,7 @@ snakeFood = pygame.image.load('Snake/resources/food.png')
 
 GRIDSQUARE = 20
 SPEED = 10
+HSFILEPATH = 'Snake/snakeScore.txt'
 
 # Colours
 WHITE = (255, 255, 255)
@@ -86,11 +87,11 @@ class SnakeGame:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT and lastDirection is not Direction.RIGHT:
                     self.rotateSnake(lastDirection, Direction.LEFT)
-                    self.direction = lastDirection = lastSide = Direction.LEFT
+                    self.direction = lastDirection = Direction.LEFT
 
                 elif event.key == pygame.K_RIGHT and lastDirection is not Direction.LEFT:
                     self.rotateSnake(lastDirection, Direction.RIGHT)
-                    self.direction = lastDirection = lastSide = Direction.RIGHT
+                    self.direction = lastDirection = Direction.RIGHT
 
                 elif event.key == pygame.K_UP and lastDirection is not Direction.DOWN:
                     self.rotateSnake(lastDirection, Direction.UP)
@@ -141,7 +142,7 @@ class SnakeGame:
         self.display.blit(snakeFood, (self.food.x, self.food.y))
 
         # Open high score file to display on screen
-        with open('Snake/snakeScore.txt', "r") as highScoreRead:
+        with open(HSFILEPATH, "r") as highScoreRead:
             highScore = highScoreRead.readline()
         highScoreRead.close()
 
@@ -232,11 +233,11 @@ if __name__ == '__main__':
             break
     
     # Open high score file and change high score if current game beat it
-    with open('Snake/snakeScore.txt', "r") as highScoreRead:
+    with open(HSFILEPATH, "r") as highScoreRead:
         highScore = highScoreRead.readline()
         if int(highScore) < score:
             highScore = score
-            with open('Snake/snakeScore.txt', "w") as highScoreWrite: 
+            with open(HSFILEPATH, "w") as highScoreWrite: 
                 highScoreWrite.write(str(highScore))
             highScoreWrite.close()
     highScoreRead.close()
