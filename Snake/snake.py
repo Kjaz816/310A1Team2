@@ -253,12 +253,10 @@ class snake_game:
                     # Changed direction to up
                     case Direction.UP:
                         snake_head = pygame.transform.rotate(snake_head, 90)
-                        #snake_segment = pygame.transform.rotate(snake_segment, 90)
 
                     # Changed direction to down
                     case Direction.DOWN:
                         snake_head = pygame.transform.rotate(snake_head, 270)
-                        #snake_segment = pygame.transform.rotate(snake_segment, 270)
             
             # Was moving up
             case Direction.UP:
@@ -267,12 +265,10 @@ class snake_game:
                     # Changed direction to left
                     case Direction.LEFT:
                         snake_head = pygame.transform.rotate(snake_head, 90)
-                        #snake_segment = pygame.transform.rotate(snake_segment, 90)
 
                     # Changed direction to right
                     case Direction.RIGHT:
                         snake_head = pygame.transform.rotate(snake_head, -90)
-                        #snake_segment = pygame.transform.rotate(snake_segment, -90)
 
             # Was moving down
             case Direction.DOWN:
@@ -281,12 +277,10 @@ class snake_game:
                     # Changed direction to left
                     case Direction.LEFT:
                         snake_head = pygame.transform.rotate(snake_head, 270)
-                        #snake_segment = pygame.transform.rotate(snake_segment, 270)
 
                     # Changed direction to right
                     case Direction.RIGHT:
                         snake_head = pygame.transform.rotate(snake_head, -270)
-                        #snake_segment = pygame.transform.rotate(snake_segment, -270)
 
             # Was moving left                     
             case Direction.LEFT:
@@ -295,12 +289,10 @@ class snake_game:
                     # Changed direction to up
                     case Direction.UP:
                         snake_head = pygame.transform.rotate(snake_head, -90)
-                        #snake_segment = pygame.transform.rotate(snake_segment, -90)
 
                     # Changed direction to down
                     case Direction.DOWN:
                         snake_head = pygame.transform.rotate(snake_head, -270)
-                        #snake_segment = pygame.transform.rotate(snake_segment, -270)
 # Start the game    
 if __name__ == '__main__':
     game = snake_game()
