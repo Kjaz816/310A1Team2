@@ -17,9 +17,15 @@ Point = namedtuple('Point', 'x, y')
 
 # Open image files for graphics, and font for text
 snake_head = pygame.image.load('Snake/resources/snakeHead.png')
-snake_segment = pygame.image.load('Snake/resources/snakeSegment.png')
+snake_segment_vertical = pygame.image.load('Snake/resources/snakeSegment.png')
+snake_segment_horizontal = pygame.image.load('Snake/resources/snakeSegmentHorizontal.png')
+snake_tail_up = pygame.image.load('Snake/resources/snakeTailUp.png')
+snake_tail_down = pygame.image.load('Snake/resources/snakeTailDown.png')
+snake_tail_left = pygame.image.load('Snake/resources/snakeTailLeft.png')
+snake_tail_right = pygame.image.load('Snake/resources/snakeTailRight.png')
 snakeFood = pygame.image.load('Snake/resources/food.png')
 font = pygame.font.Font('Snake/resources/BPdotsSquareBold.otf', 25)
+
 
 # Constants
 GRIDSQUARE = 20
@@ -30,7 +36,9 @@ WINDOW_HEIGHT = 1000
 
 # Colours
 WHITE = (255, 255, 255)
-GRASS = (8, 36, 19)
+BLACK = (0, 0, 0)
+GRASS = (167, 209, 61)
+LIGHTGRASS = (175,215,70)
 
 class snake_game:
 
@@ -40,6 +48,16 @@ class snake_game:
         self.width = width
         self.height = height
         self.display = pygame.display.set_mode((self.width, self.height))
+
+        # Initialize the field surface to be called in the loop
+        self.field = pygame.Surface((self.width, self.height))
+        self.field.fill(GRASS)
+        for row in range(self.height):
+           if row % 2 == 0:
+                for col in range(self.width):
+                    if col % 2 == 0:
+                        grass_rect = pygame.Rect(col * GRIDSQUARE, row * GRIDSQUARE, GRIDSQUARE, GRIDSQUARE)
+                        pygame.draw.rect(self.field, LIGHTGRASS, grass_rect)
 
         # Set window title
         pygame.display.set_caption('Snake')
@@ -138,15 +156,36 @@ class snake_game:
 
         
     def update_ui(self):
-
+        
         # Set background to grass colour
-        self.display.fill(GRASS)
+        self.display.blit(self.field, self.field.get_rect())
+                        
+        for index, point in enumerate(self.snake[1:]):
+            current_segment = self.snake[index] 
+            next_segment = self.snake[index+1]
 
-        for point in self.snake[1:]:
+            # Check if the segment is the last segment, and if it is then draws a tail depending on the direction
+            if index == len(self.snake) - 2:
+                if next_segment.y == current_segment.y:
+                    if next_segment.x < current_segment.x:
+                        self.display.blit(snake_tail_right, (point.x, point.y))        
+                    else:
+                        self.display.blit(snake_tail_left, (point.x, point.y))   
 
-            #Draw snake segment
-            self.display.blit(snake_segment, (point.x, point.y))
+                elif next_segment.x == current_segment.x: 
+                    if next_segment.y < current_segment.y:
+                        self.display.blit(snake_tail_down, (point.x, point.y))  
+                    else:
+                        self.display.blit(snake_tail_up, (point.x, point.y))  
 
+            # Draws a horizontal snake segment if the next segment in the snake is on the same y level
+            elif current_segment.y == next_segment.y:
+                self.display.blit(snake_segment_horizontal, (point.x, point.y))
+
+            # Draws a horizontal snake segment if the next segment in the snake is on the same x level
+            elif current_segment.x == next_segment.x:
+                self.display.blit(snake_segment_vertical, (point.x, point.y))
+            
         # Draw snake head
         self.display.blit(snake_head, (self.head.x, self.head.y))
 
@@ -159,7 +198,7 @@ class snake_game:
         high_score_read.close()
 
         # Display current score and high score on screen
-        text = font.render("Score: " + str(self.score) + " High Score: " + high_score, True, WHITE)
+        text = font.render("Score: " + str(self.score) + " High Score: " + high_score, True, BLACK)
         self.display.blit(text, [0, 0])
         pygame.display.flip()
 
@@ -212,12 +251,12 @@ class snake_game:
                     # Changed direction to up
                     case Direction.UP:
                         snake_head = pygame.transform.rotate(snake_head, 90)
-                        snake_segment = pygame.transform.rotate(snake_segment, 90)
+                        #snake_segment = pygame.transform.rotate(snake_segment, 90)
 
                     # Changed direction to down
                     case Direction.DOWN:
                         snake_head = pygame.transform.rotate(snake_head, 270)
-                        snake_segment = pygame.transform.rotate(snake_segment, 270)
+                        #snake_segment = pygame.transform.rotate(snake_segment, 270)
             
             # Was moving up
             case Direction.UP:
@@ -226,12 +265,12 @@ class snake_game:
                     # Changed direction to left
                     case Direction.LEFT:
                         snake_head = pygame.transform.rotate(snake_head, 90)
-                        snake_segment = pygame.transform.rotate(snake_segment, 90)
+                        #snake_segment = pygame.transform.rotate(snake_segment, 90)
 
                     # Changed direction to right
                     case Direction.RIGHT:
                         snake_head = pygame.transform.rotate(snake_head, -90)
-                        snake_segment = pygame.transform.rotate(snake_segment, -90)
+                        #snake_segment = pygame.transform.rotate(snake_segment, -90)
 
             # Was moving down
             case Direction.DOWN:
@@ -240,12 +279,12 @@ class snake_game:
                     # Changed direction to left
                     case Direction.LEFT:
                         snake_head = pygame.transform.rotate(snake_head, 270)
-                        snake_segment = pygame.transform.rotate(snake_segment, 270)
+                        #snake_segment = pygame.transform.rotate(snake_segment, 270)
 
                     # Changed direction to right
                     case Direction.RIGHT:
                         snake_head = pygame.transform.rotate(snake_head, -270)
-                        snake_segment = pygame.transform.rotate(snake_segment, -270)
+                        #snake_segment = pygame.transform.rotate(snake_segment, -270)
 
             # Was moving left                     
             case Direction.LEFT:
@@ -254,12 +293,12 @@ class snake_game:
                     # Changed direction to up
                     case Direction.UP:
                         snake_head = pygame.transform.rotate(snake_head, -90)
-                        snake_segment = pygame.transform.rotate(snake_segment, -90)
+                        #snake_segment = pygame.transform.rotate(snake_segment, -90)
 
                     # Changed direction to down
                     case Direction.DOWN:
                         snake_head = pygame.transform.rotate(snake_head, -270)
-                        snake_segment = pygame.transform.rotate(snake_segment, -270)
+                        #snake_segment = pygame.transform.rotate(snake_segment, -270)
 # Start the game    
 if __name__ == '__main__':
     game = snake_game()
