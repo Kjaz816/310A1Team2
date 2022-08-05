@@ -8,22 +8,25 @@ from collections import namedtuple
 pygame.init()
 
 # Constants
-WINDOW_WIDTH = 1000
-WINDOW_HEIGHT = 1000
+WINDOW_WIDTH = 700
+WINDOW_HEIGHT = 600
 BRICK_COLS = 6
 BRICK_ROWS = 6
 
 # Colours
 WHITE = (255, 255, 255)
-RED_BLOCK = (255, 0, 0)
-BLUE_BLOCK = (0, 255, 0)
-GREEN_BLOCK = (0, 0, 255)
+BACKGROUND = (234, 218, 184)
+RED_BLOCK = (255, 50, 50)
+GREEN_BLOCK = (50, 255, 50)
+BLUE_BLOCK = (50, 50, 255)
+PADDLE_COLOUR = (142, 135, 123)
+PADDLE_OUTLINE = (100, 100, 100)
 
 class wall():
     def __init__(self):
         # Create the wall dimensions based on the window dimensions and number of bricks wanted
         self.width = WINDOW_WIDTH // BRICK_COLS
-        self.height = 50
+        self.height = 40
 
     def create_wall(self):
         # Create an empty list that will contain the blocks
@@ -62,14 +65,39 @@ class wall():
                 # Assign colour based on block strength
                 if brick[1] == 3:
                     brick_colour = RED_BLOCK
-                    print('red')
                 elif brick[1] == 2:
-                    brick_colour == BLUE_BLOCK
-                    print('blue')
+                    brick_colour = BLUE_BLOCK
                 elif brick[1] == 1:
-                    brick_colour == GREEN_BLOCK
-                    print('green')
+                    brick_colour = GREEN_BLOCK
                 pygame.draw.rect(display, brick_colour, brick[0])
+                print(brick_colour)
+                
+                pygame.draw.rect(display, BACKGROUND, brick[0], 2)
+        
+class paddle():
+    def __init__(self):
+        # Define paddle dimensions and attributes
+        self.height = 10
+        self.width = int(WINDOW_WIDTH / BRICK_COLS)
+        self.x = int((WINDOW_WIDTH/2) - (self.width / 2))
+        self.y = WINDOW_HEIGHT - 3 * (self.height / 2)
+        self.speed = 10
+        self.rect = Rect(self.x, self.y, self.width, self.height)
+        self.direction = 0
+
+    def move(self):
+        # Reset movement
+        self.direction = 0
+        key = pygame.key.get_pressed()
+        if key[pygame.K_LEFT] and self.rect.left > 0:
+            self.rect.x -= self.speed
+            self.direction = -1
+        if key[pygame.K_RIGHT] and self.rect.right < WINDOW_WIDTH:
+            self.rect.x += self.speed
+            self.direction = 1
+
+    def draw(self, display):
+        pygame.draw.rect(display, PADDLE_COLOUR, self.rect)
 
 
 class breakout_game:
@@ -80,7 +108,10 @@ class breakout_game:
         self.width = width
         self.height = height
         self.display = pygame.display.set_mode((self.width, self.height))
+        self.display.fill(BACKGROUND)
         brick_wall.draw_wall(self.display)
+        
+
         # Set window title
         pygame.display.set_caption('Breakout')
         
@@ -93,9 +124,11 @@ class breakout_game:
 
 
     def update_ui(self):
+        player_paddle = paddle()
+        player_paddle.draw(self.display)
+        player_paddle.move()
 
-        # Set background to white
-        self.display.fill(WHITE)
+        
 
         # Draw wall
         

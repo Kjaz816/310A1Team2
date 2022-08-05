@@ -177,6 +177,8 @@ class snake_game:
                         self.display.blit(snake_tail_down, (point.x, point.y))  
                     else:
                         self.display.blit(snake_tail_up, (point.x, point.y))  
+                else:
+                    print("x")
 
             # Draws a horizontal snake segment if the next segment in the snake is on the same y level
             elif current_segment.y == next_segment.y:
