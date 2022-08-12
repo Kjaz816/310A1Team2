@@ -7,6 +7,7 @@ HEIGHT = 720
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 caption_title = pygame.display.set_caption("Arcade Menu")
 
+
 class Button():
     def __init__(self, x, y, image, gif_image):
         self.image = image
@@ -18,20 +19,23 @@ class Button():
     def update(self):
         window.blit(self.image, self.rect)
 
-    def button_clicked(self, position):
+    def mouse_over_button(self, position):
         if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
             return True
 
+
 # Game buttons
-snake_image = pygame.image.load("MainGame/Buttons/snakeimg.png").convert_alpha()
-breakout_image = pygame.image.load("MainGame/Buttons/breakoutimg.png").convert_alpha()
+snake_image = pygame.image.load(
+    "MainGame/Buttons/snakeimg.png").convert_alpha()
+breakout_image = pygame.image.load(
+    "MainGame/Buttons/breakoutimg.png").convert_alpha()
 
 snake_button = Button(263.67, 540, snake_image, "no gif yet")
-breakout_button = Button(527.32, 540, breakout_image, "no gif yet")
+breakout_button = Button(600, 540, breakout_image, "no gif yet")
 
 running = True
 while running:
-    
+
     for event in pygame.event.get():
         # To exit the game
         if event.type == pygame.QUIT:
@@ -41,19 +45,35 @@ while running:
         # User tried to click
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Activate Snake
-            if snake_button.button_clicked(pygame.mouse.get_pos()):
+            if snake_button.mouse_over_button(pygame.mouse.get_pos()):
                 print("snake clicked")
 
             # Activate Breakout
-            elif breakout_button.button_clicked(pygame.mouse.get_pos()):
+            elif breakout_button.mouse_over_button(pygame.mouse.get_pos()):
                 print("breakout clicked")
-                
+
             # No buttons
             else:
                 print("no button clicked")
-            
+
+        if event.type == pygame.MOUSEMOTION:
+            # Activate Snake
+            if snake_button.mouse_over_button(pygame.mouse.get_pos()):
+                # TODO turn on gif here
+                pass
+
+            # Activate Breakout
+            elif breakout_button.mouse_over_button(pygame.mouse.get_pos()):
+                # TODO turn on gif here
+                pass
+
+            else:
+                # TODO turn off all gifs
+                pass
+
     window.fill("black")
 
     snake_button.update()
+    breakout_button.update()
 
     pygame.display.update()
