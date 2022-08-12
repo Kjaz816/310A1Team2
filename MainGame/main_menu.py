@@ -1,5 +1,4 @@
 import pygame
-import pygame
 import sys
 
 WIDTH = 1280
@@ -25,8 +24,10 @@ class Button():
 
 # Game buttons
 snake_image = pygame.image.load("MainGame/Buttons/snakeimg.png").convert_alpha()
+breakout_image = pygame.image.load("MainGame/Buttons/breakoutimg.png").convert_alpha()
 
 snake_button = Button(263.67, 540, snake_image, "no gif yet")
+breakout_button = Button(527.32, 540, breakout_image, "no gif yet")
 
 running = True
 while running:
@@ -42,6 +43,10 @@ while running:
             # Activate Snake
             if snake_button.button_clicked(pygame.mouse.get_pos()):
                 print("snake clicked")
+
+            # Activate Breakout
+            elif breakout_button.button_clicked(pygame.mouse.get_pos()):
+                print("breakout clicked")
                 
             # No buttons
             else:
