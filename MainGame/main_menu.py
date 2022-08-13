@@ -7,11 +7,11 @@ HEIGHT = 720
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 caption_title = pygame.display.set_caption("Arcade Menu")
 
+pygame.init()
 
-class Button():
-    def __init__(self, x, y, image, gif_image):
+class ScreenItem():
+    def __init__(self, x, y, image):
         self.image = image
-        self.gif_image = gif_image
         self.x = x
         self.y = y
         self.rect = self.image.get_rect(center=(self.x, self.y))
@@ -23,6 +23,7 @@ class Button():
         if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
             return True
 
+font = pygame.font.SysFont('arial', 25)
 
 # Game buttons
 snake_image = pygame.image.load(
@@ -30,8 +31,15 @@ snake_image = pygame.image.load(
 breakout_image = pygame.image.load(
     "MainGame/Buttons/breakoutimg.png").convert_alpha()
 
-snake_button = Button(263.67, 540, snake_image, "no gif yet")
-breakout_button = Button(600, 540, breakout_image, "no gif yet")
+# Button texts
+snake_title = font.render("Snake", True, 'green')
+
+
+snake_button = ScreenItem(263.67, 540, snake_image)
+snake_text = ScreenItem(263.67, 450, snake_title)
+breakout_button = ScreenItem(600, 540, breakout_image)
+
+show_text = False
 
 running = True
 while running:
@@ -59,8 +67,7 @@ while running:
         if event.type == pygame.MOUSEMOTION:
             # Activate Snake
             if snake_button.mouse_over_button(pygame.mouse.get_pos()):
-                # TODO turn on gif here
-                pass
+                show_text = True
 
             # Activate Breakout
             elif breakout_button.mouse_over_button(pygame.mouse.get_pos()):
@@ -68,12 +75,14 @@ while running:
                 pass
 
             else:
-                # TODO turn off all gifs
-                pass
+                show_text = False
 
     window.fill("black")
 
     snake_button.update()
     breakout_button.update()
+    if show_text == True:
+        snake_text.update()
+
 
     pygame.display.update()
