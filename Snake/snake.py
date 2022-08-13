@@ -16,23 +16,23 @@ class Direction(Enum):
 Point = namedtuple('Point', 'x, y')
 
 # Open image files for graphics, and font for text
-snake_head = pygame.image.load('Snake/resources/snakeHead.png')
-snake_segment_vertical = pygame.image.load('Snake/resources/snakeSegment.png')
-snake_segment_horizontal = pygame.image.load('Snake/resources/snakeSegmentHorizontal.png')
-snake_tail_up = pygame.image.load('Snake/resources/snakeTailUp.png')
-snake_tail_down = pygame.image.load('Snake/resources/snakeTailDown.png')
-snake_tail_left = pygame.image.load('Snake/resources/snakeTailLeft.png')
-snake_tail_right = pygame.image.load('Snake/resources/snakeTailRight.png')
-snakeFood = pygame.image.load('Snake/resources/food.png')
-font = pygame.font.Font('Snake/resources/BPdotsSquareBold.otf', 25)
+snake_head = pygame.image.load('resources/snakeHead.png')
+snake_segment_vertical = pygame.image.load('resources/snakeSegment.png')
+snake_segment_horizontal = pygame.image.load('resources/snakeSegmentHorizontal.png')
+snake_tail_up = pygame.image.load('resources/snakeTailUp.png')
+snake_tail_down = pygame.image.load('resources/snakeTailDown.png')
+snake_tail_left = pygame.image.load('resources/snakeTailLeft.png')
+snake_tail_right = pygame.image.load('resources/snakeTailRight.png')
+snakeFood = pygame.image.load('resources/food.png')
+font = pygame.font.Font('resources/BPdotsSquareBold.otf', 25)
 
 
 # Constants
 GRIDSQUARE = 20
 SNAKE_SPEED = 10
 HIGHSCORE_FILE_PATH = 'Snake/snakeScore.txt'
-WINDOW_WIDTH = 1000
-WINDOW_HEIGHT = 1000
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 # Colours
 WHITE = (255, 255, 255)
@@ -200,8 +200,8 @@ class snake_game:
         high_score_read.close()
 
         # Display current score and high score on screen
-        text = font.render("Score: " + str(self.score) + " High Score: " + high_score, True, BLACK)
-        self.display.blit(text, [0, 0])
+        #text = font.render("Score: " + str(self.score) + " High Score: " + high_score, True, BLACK)
+        #self.display.blit(text, [0, 0])
         pygame.display.flip()
 
 
@@ -293,24 +293,31 @@ class snake_game:
                     # Changed direction to down
                     case Direction.DOWN:
                         snake_head = pygame.transform.rotate(snake_head, -270)
-# Start the game    
-if __name__ == '__main__':
-    game = snake_game()
-    last_direction = Direction.RIGHT
-    while True:
-        gameOver, score, last_direction = game.play_step(last_direction)
-        if gameOver == True:
-            break
     
-    # Open high score file and change high score if current game beat it
-    with open(HIGHSCORE_FILE_PATH, "r") as high_score_read:
-        high_score = high_score_read.readline()
-        if int(high_score) < score:
-            high_score = score
-            with open(HIGHSCORE_FILE_PATH, "w") as high_score_write: 
-                high_score_write.write(str(high_score))
-            high_score_write.close()
-    high_score_read.close()
+    def start_game(self):
+        game = snake_game()
+        last_direction = Direction.RIGHT
+        while True:
+            game_over, score, last_direction = game.play_step(last_direction)
+            if game_over == True:
+                break
+    
+        # Open high score file and change high score if current game beat it
+        with open(HIGHSCORE_FILE_PATH, "r") as high_score_read:
+            high_score = high_score_read.readline()
+            if int(high_score) < score:
+                high_score = score
+                with open(HIGHSCORE_FILE_PATH, "w") as high_score_write: 
+                    high_score_write.write(str(high_score))
+                high_score_write.close()
+        high_score_read.close()
 
-    print('Final Score', score, 'High Score', high_score)
+        print('Final Score', score, 'High Score', high_score)
+
+# Start the game    
+#snake_game_instance = snake_game()
+#snake_game_instance.start_game()
+    
+
+
 pygame.quit()
