@@ -22,6 +22,18 @@ BLUE_BLOCK = (50, 50, 255)
 PADDLE_COLOUR = (142, 135, 123)
 PADDLE_OUTLINE = (100, 100, 100)
 
+# Global variables for game settings
+PADDLE_HEIGHT = 15
+PADDLE_Y_POS = WINDOW_HEIGHT - 3 * (PADDLE_HEIGHT / 2)
+BALL_RADIUS = 10
+BALL_SPEED_X = 4
+BALL_SPEED_Y = -4
+PADDLE_SPEED = 10
+BALL_MAX_SPEED = 5
+
+clock = pygame.time.Clock()
+fps = 60
+
 class wall():
     def __init__(self):
         # Create the wall dimensions based on the window dimensions and number of bricks wanted
@@ -70,18 +82,17 @@ class wall():
                 elif brick[1] == 1:
                     brick_colour = GREEN_BLOCK
                 pygame.draw.rect(display, brick_colour, brick[0])
-                print(brick_colour)
-                
                 pygame.draw.rect(display, BACKGROUND, brick[0], 2)
         
+
 class paddle():
     def __init__(self):
         # Define paddle dimensions and attributes
-        self.height = 10
+        self.height = PADDLE_HEIGHT
         self.width = int(WINDOW_WIDTH / BRICK_COLS)
         self.x = int((WINDOW_WIDTH/2) - (self.width / 2))
-        self.y = WINDOW_HEIGHT - 3 * (self.height / 2)
-        self.speed = 10
+        self.y = PADDLE_Y_POS
+        self.speed = PADDLE_SPEED
         self.rect = Rect(self.x, self.y, self.width, self.height)
         self.direction = 0
 
@@ -98,48 +109,128 @@ class paddle():
 
     def draw(self, display):
         pygame.draw.rect(display, PADDLE_COLOUR, self.rect)
+        pygame.draw.rect(display, PADDLE_OUTLINE, self.rect, 3)
+
+
+class ball():
+    def __init__(self, x, y) :
+        self.ball_rad = BALL_RADIUS
+        self.speed_x = BALL_SPEED_X
+        self.speed_y = BALL_SPEED_Y
+        self.x = x - self.ball_rad
+        self.y = y
+        self.rect = Rect(self.x, self.y, self.ball_rad * 2, self.ball_rad * 2)
+        self.game_over = 0
+
+    def draw(self, display):
+        pygame.draw.circle(display, PADDLE_COLOUR, (self.rect.x + self.ball_rad, self.rect.y + self.ball_rad), self.ball_rad)
+        pygame.draw.circle(display, PADDLE_OUTLINE, (self.rect.x + self.ball_rad, self.rect.y + self.ball_rad), self.ball_rad, 3)
+
+    def move(self):
+
+        collision_threshold = 5
+
+        game_won = True
+
+        row_count = 0
+        for row in brick_wall.wall:
+            brick_count = 0
+            for brick in row:
+                if self.rect.colliderect(brick[0]):
+                    # Check where collision came from
+                    # Above:
+                    if abs(self.rect.bottom - brick[0].top) < collision_threshold and self.speed_y > 0:
+                        self.speed_y *= -1
+                    # Below:
+                    if abs(self.rect.top - brick[0].bottom) < collision_threshold and self.speed_y < 0:
+                        self.speed_y *= -1
+                    # Left:
+                    if abs(self.rect.right - brick[0].left) < collision_threshold and self.speed_y > 0:
+                        self.speed_x *= -1
+                    # Right:
+                    if abs(self.rect.left - brick[0].right) < collision_threshold and self.speed_y < 0:
+                        self.speed_x *= -1
+                    
+                    # Damage block by 1, and delete it if the blocks health = 0
+                    if brick_wall.wall[row_count][brick_count][1] > 1:
+                        brick_wall.wall[row_count][brick_count][1] -= 1
+                    else:
+                        brick_wall.wall[row_count][brick_count][0] = (0, 0, 0, 0)
+
+                # Check if current block exists, and if it does then game over must be false
+                if brick_wall.wall[row_count][brick_count][0] != (0, 0, 0, 0):
+                    game_won = False
+                
+                brick_count += 1
+            row_count += 1
+        
+        # Check if all blocks are gone, and if they are then set game_over to 1
+        if game_won == True:
+            self.game_over = 1
+
+        # Check for wall collisions
+        if self.rect.left < 0 or self.rect.right > WINDOW_WIDTH:
+            self.speed_x *= -1
+        if self.rect.top < 0:
+            self.speed_y *= -1
+        
+        # Check if player missed the ball
+        if self.rect.bottom > WINDOW_HEIGHT:
+            self.game_over = -1
+
+        # Check for collision with paddle
+        if self.rect.colliderect(player_paddle):
+            if abs(self.rect.bottom - player_paddle.rect.top) < collision_threshold and self.speed_y > 0:
+                self.speed_y *= -1
+                self.speed_x += player_paddle.direction
+                if self.speed_x > BALL_MAX_SPEED:
+                    self.speed_x = BALL_MAX_SPEED
+                elif self.speed_x < 0 and self.speed_x < -BALL_MAX_SPEED:
+                    self.speed_x = -BALL_MAX_SPEED
+
+            else: 
+                self.speed_x * -1
+            
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+        
+        return self.game_over
 
 
 class breakout_game:
     def __init__(self, width = WINDOW_WIDTH, height = WINDOW_HEIGHT):
         # Set display resolution
-        brick_wall = wall()
-        brick_wall.create_wall()
         self.width = width
         self.height = height
         self.display = pygame.display.set_mode((self.width, self.height))
         self.display.fill(BACKGROUND)
-        brick_wall.draw_wall(self.display)
         
-
         # Set window title
         pygame.display.set_caption('Breakout')
-        
-        
-
  
     def play_step(self):
         self.update_ui()
-        return True, 0
-
-
-    def update_ui(self):
-        player_paddle = paddle()
-        player_paddle.draw(self.display)
+        ball.move()
         player_paddle.move()
-
         
-
-        # Draw wall
-        
+    def update_ui(self):
+        player_paddle.draw(self.display)
+        brick_wall.draw_wall(self.display)
+        ball.draw(self.display)
         pygame.display.flip()
 
+
 if __name__ == '__main__':
+    brick_wall = wall()
+    brick_wall.create_wall()
     game = breakout_game()
+    player_paddle = paddle()
+    ball = ball(player_paddle.x + player_paddle.width // 2, player_paddle.y - player_paddle.height - 5)
     while True:
-        
-        
-        gameOver, score = game.play_step()
+
+        game.display.fill(BACKGROUND)
+        clock.tick(fps)
+        game.play_step()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

@@ -318,6 +318,4 @@ class snake_game:
 #snake_game_instance = snake_game()
 #snake_game_instance.start_game()
     
-
-
 pygame.quit()
