@@ -4,21 +4,23 @@ import pygame
 from pygame.locals import *
 from enum import Enum
 from collections import namedtuple
+from random import randint
 
 pygame.init()
+game_over_screen = pygame.image.load('resources/gameOverScreenBreakout.png')
 
 # Constants
-WINDOW_WIDTH = 700
-WINDOW_HEIGHT = 600
-BRICK_COLS = 6
-BRICK_ROWS = 6
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
+BRICK_COLS = 9
+BRICK_ROWS = 9
 
 # Colours
 WHITE = (255, 255, 255)
 BACKGROUND = (234, 218, 184)
-RED_BLOCK = (255, 50, 50)
-GREEN_BLOCK = (50, 255, 50)
-BLUE_BLOCK = (50, 50, 255)
+RED_BLOCK = (227, 75, 115)
+GREEN_BLOCK = (118, 222, 67)
+BLUE_BLOCK = (52, 207, 224)
 PADDLE_COLOUR = (142, 135, 123)
 PADDLE_OUTLINE = (100, 100, 100)
 
@@ -33,6 +35,11 @@ BALL_MAX_SPEED = 5
 
 clock = pygame.time.Clock()
 fps = 60
+
+live_ball = False
+game_over = 0
+
+level = 2
 
 class wall():
     def __init__(self):
@@ -57,12 +64,24 @@ class wall():
                 rectangle = pygame.Rect(brick_x, brick_y, self.width, self.height)
                 
                 # Assign brick strength based on high up they are
-                if row < 2: 
-                    strength = 3
-                elif row < 4:
-                    strength = 2
-                elif row < 6:
-                    strength = 1
+                if level == 1: 
+                    if row < round(BRICK_ROWS * 0.33): 
+                        strength = 3
+                    elif row < round(BRICK_ROWS * 0.66): 
+                        strength = 2
+                    else:
+                        strength = 1
+
+                elif level == 2:
+                    if col == 0 or col == BRICK_COLS - 1 or row < 2: 
+                        strength = 1
+                    elif row < round(BRICK_ROWS * 0.66): 
+                        strength = 2
+                    else:
+                        strength = 3
+
+                else:
+                    strength = randint(1, 3)
                 
                 # Add brick and its strength to the brick row list
                 bricks = [rectangle, strength]
@@ -175,14 +194,14 @@ class ball():
             self.speed_y *= -1
         
         # Check if player missed the ball
-        if self.rect.bottom > WINDOW_HEIGHT:
+        if self.rect.bottom > WINDOW_HEIGHT + BALL_RADIUS * 2:
             self.game_over = -1
 
         # Check for collision with paddle
         if self.rect.colliderect(player_paddle):
             if abs(self.rect.bottom - player_paddle.rect.top) < collision_threshold and self.speed_y > 0:
                 self.speed_y *= -1
-                self.speed_x += player_paddle.direction
+                self.speed_x += player_paddle.direction * 5
                 if self.speed_x > BALL_MAX_SPEED:
                     self.speed_x = BALL_MAX_SPEED
                 elif self.speed_x < 0 and self.speed_x < -BALL_MAX_SPEED:
@@ -208,33 +227,56 @@ class breakout_game:
         # Set window title
         pygame.display.set_caption('Breakout')
  
-    def play_step(self):
-        self.update_ui()
-        ball.move()
-        player_paddle.move()
+    def play_step(self, live_ball, game_over):
+        self.update_ui(game_over)
+
+        if live_ball == True:
+            game_over = ball.move()
+            player_paddle.move()
+            if game_over != 0:
+                live_ball = False
         
-    def update_ui(self):
+        return live_ball, game_over
+        
+    def update_ui(self, game_over):
+        
         player_paddle.draw(self.display)
         brick_wall.draw_wall(self.display)
         ball.draw(self.display)
+        if game_over == -1:
+            self.display.blit(game_over_screen, (0, 0))
         pygame.display.flip()
 
 
+
 if __name__ == '__main__':
+    
+    # Start Game
+    game = breakout_game()
+
+    # Setup 
     brick_wall = wall()
     brick_wall.create_wall()
-    game = breakout_game()
     player_paddle = paddle()
     ball = ball(player_paddle.x + player_paddle.width // 2, player_paddle.y - player_paddle.height - 5)
+
     while True:
 
         game.display.fill(BACKGROUND)
         clock.tick(fps)
-        game.play_step()
+        live_ball, game_over = game.play_step(live_ball, game_over)
+        
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+                
+            if event.type == pygame.MOUSEBUTTONDOWN and live_ball == False and game_over == 0:
+                live_ball = True
 
+            if event.type == pygame.MOUSEBUTTONDOWN and live_ball == False and game_over == -1:
+                pygame.quit()
+                quit()
+                
 pygame.quit()
