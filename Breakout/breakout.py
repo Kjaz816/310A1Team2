@@ -1,7 +1,7 @@
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
-from pygame.locals import *
+from pygame.locals import Rect
 from enum import Enum
 from collections import namedtuple
 from random import randint
@@ -59,7 +59,7 @@ class wall():
 
     def create_wall(self):
         # Create an empty list that will contain the blocks
-        self.wall = [] 
+        self.brick_wall = [] 
         bricks = []
         # Create the required number of block rows
         for row in range(BRICK_ROWS):
@@ -97,10 +97,10 @@ class wall():
                 bricks = [rectangle, strength]
                 brick_row.append(bricks)
             
-            self.wall.append(brick_row)
+            self.brick_wall.append(brick_row)
 
     def draw_wall(self, display):
-        for row in self.wall:
+        for row in self.brick_wall:
             for brick in row:
 
                 # Assign colour based on block strength
@@ -151,8 +151,8 @@ class ball():
         self.rect = Rect(self.x, self.y, self.ball_rad * 2, self.ball_rad * 2)
         self.game_over = 0
 
-    def draw(self, display, trueBall):
-        if trueBall == True:
+    def draw(self, display, true_ball):
+        if true_ball == True:
             pygame.draw.circle(display, PADDLE_COLOUR, (self.rect.x + self.ball_rad, self.rect.y + self.ball_rad), self.ball_rad)
             pygame.draw.circle(display, PADDLE_OUTLINE, (self.rect.x + self.ball_rad, self.rect.y + self.ball_rad), self.ball_rad, 3)
         
@@ -168,7 +168,7 @@ class ball():
         game_won = True
 
         row_count = 0
-        for row in brick_wall.wall:
+        for row in brick_wall.brick_wall:
             brick_count = 0
             for brick in row:
                 if self.rect.colliderect(brick[0]):
@@ -187,21 +187,21 @@ class ball():
                         self.speed_x *= -1
                     
                     # Damage block by 1, and delete it if the blocks health = 0
-                    if brick_wall.wall[row_count][brick_count][1] > 1:
-                        brick_wall.wall[row_count][brick_count][1] -= 1
+                    if brick_wall.brick_wall[row_count][brick_count][1] > 1:
+                        brick_wall.brick_wall[row_count][brick_count][1] -= 1
 
                     else:
                         
                         if randint(1, 3) == 3:
 
                             powerup[0] = 1
-                            powerupPos = [brick_wall.wall[row_count][brick_count][0].x, brick_wall.wall[row_count][brick_count][0].y]
-                            powerup.append(powerupPos)
+                            powerup_pos = [brick_wall.brick_wall[row_count][brick_count][0].x, brick_wall.brick_wall[row_count][brick_count][0].y]
+                            powerup.append(powerup_pos)
                         
-                        brick_wall.wall[row_count][brick_count][0] = (0, 0, 0, 0)
+                        brick_wall.brick_wall[row_count][brick_count][0] = (0, 0, 0, 0)
 
                 # Check if current block exists, and if it does then game over must be false
-                if brick_wall.wall[row_count][brick_count][0] != (0, 0, 0, 0):
+                if brick_wall.brick_wall[row_count][brick_count][0] != (0, 0, 0, 0):
                     game_won = False
                 
                 brick_count += 1
@@ -234,9 +234,6 @@ class ball():
                     self.speed_x = BALL_MAX_SPEED
                 elif self.speed_x < 0 and self.speed_x < -BALL_MAX_SPEED:
                     self.speed_x = -BALL_MAX_SPEED
-
-            else: 
-                self.speed_x * -1
             
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
@@ -282,8 +279,8 @@ class breakout_game:
         if game_over == 0:
 
             game_over, powerup = firstBall.move()
-            for currentBall in balls:
-                game_over, powerup = currentBall.move()
+            for current_ball in balls:
+                game_over, powerup = current_ball.move()
             
             if powerup[0] != 0:
                 new_powerup = power_up(powerup[1][0], powerup[1][1])
@@ -311,8 +308,8 @@ class breakout_game:
             balls.append(new_ball)
 
         firstBall.draw(self.display, True)
-        for currentBall in balls:
-            currentBall.draw(self.display, False)
+        for current_ball in balls:
+            current_ball.draw(self.display, False)
 
         if ball_count == -1:
             self.display.blit(game_over_screen, (0, 0))
