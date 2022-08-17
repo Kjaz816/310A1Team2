@@ -33,13 +33,16 @@ breakout_image = pygame.image.load(
 
 # Button texts
 snake_title = font.render("Snake", True, 'green')
+breakout_title = font.render("Breakout", True, 'green')
 
 
 snake_button = ScreenItem(263.67, 540, snake_image)
 snake_text = ScreenItem(263.67, 450, snake_title)
 breakout_button = ScreenItem(600, 540, breakout_image)
+breakout_text = ScreenItem(600, 540, breakout_title)
 
-show_text = False
+snake_text_show = False
+breakout_text_show = False
 
 running = True
 while running:
@@ -67,21 +70,24 @@ while running:
         if event.type == pygame.MOUSEMOTION:
             # Activate Snake
             if snake_button.mouse_over_button(pygame.mouse.get_pos()):
-                show_text = True
+                snake_text_show = True
 
             # Activate Breakout
             elif breakout_button.mouse_over_button(pygame.mouse.get_pos()):
-                pass
+                breakout_text_show = True
 
             else:
-                show_text = False
+                snake_text_show = False                
+                breakout_text_show = False
 
     window.fill("black")
 
     snake_button.update()
     breakout_button.update()
-    if show_text == True:
+    if snake_text_show == True:
         snake_text.update()
+    if breakout_text_show == True:
+        breakout_text.update()
 
 
     pygame.display.update()
