@@ -71,7 +71,6 @@ while running:
 
             # Activate Breakout
             elif breakout_button.mouse_over_button(pygame.mouse.get_pos()):
-                # TODO turn on gif here
                 pass
 
             else:
