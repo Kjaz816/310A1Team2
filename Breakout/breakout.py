@@ -7,13 +7,19 @@ from collections import namedtuple
 from random import randint
 
 pygame.init()
+
+# Open image files for graphics
 game_over_screen = pygame.image.load('resources/gameOverScreenBreakout.png')
 you_win_screen = pygame.image.load('resources/winScreenBreakout.png')
 extra_ball = pygame.image.load('resources/extraBall.png')
 
-# Constants
+# Window resolution (Default 1280 x 720)
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
+
+# Other setup
+clock = pygame.time.Clock()
+fps = 60
 
 # Number of bricks in the wall (Default 9 x 9)
 BRICK_COLS = 9
@@ -28,39 +34,39 @@ BLUE_BLOCK = (52, 207, 224)
 PADDLE_COLOUR = (142, 135, 123)
 PADDLE_OUTLINE = (100, 100, 100)
 FAKE_BALL_COLOUR = (255, 255, 255)
-POWERUP = (0, 0, 0)
 
-# Global variables for game settings
+# Paddle setup (Do not change)
 PADDLE_HEIGHT = 15
 PADDLE_Y_POS = WINDOW_HEIGHT - 3 * (PADDLE_HEIGHT / 2)
+
+# Game Settings 
+level = 3 #(1, 2, or anything else for randomly generated level)
 BALL_RADIUS = 10
 BALL_SPEED_X = 4
 BALL_SPEED_Y = -4
 PADDLE_SPEED = 10
 BALL_MAX_SPEED = 5
 
-clock = pygame.time.Clock()
-fps = 60
-
-live_ball = False
+# Global variables for game
+start_game = False
 game_over = 0
-
-level = 2
-ball_count = 0
-
 powerups = []
+ball_count = 0
 balls = []
 
 class wall():
     def __init__(self):
+
         # Create the wall dimensions based on the window dimensions and number of bricks wanted
         self.width = WINDOW_WIDTH // BRICK_COLS
         self.height = 40
 
     def create_wall(self):
+
         # Create an empty list that will contain the blocks
         self.brick_wall = [] 
         bricks = []
+
         # Create the required number of block rows
         for row in range(BRICK_ROWS):
             brick_row = []
@@ -73,7 +79,7 @@ class wall():
                 brick_y = row * self.height
                 rectangle = pygame.Rect(brick_x, brick_y, self.width, self.height)
                 
-                # Assign brick strength based on high up they are
+                # Assign brick strength based on the level that the player chose
                 if level == 1: 
                     if row < round(BRICK_ROWS * 0.33): 
                         strength = 3
@@ -97,6 +103,7 @@ class wall():
                 bricks = [rectangle, strength]
                 brick_row.append(bricks)
             
+            # Add brick row to the overall brick wall list
             self.brick_wall.append(brick_row)
 
     def draw_wall(self, display):
@@ -110,12 +117,15 @@ class wall():
                     brick_colour = BLUE_BLOCK
                 elif brick[1] == 1:
                     brick_colour = GREEN_BLOCK
+
+                # Draw brick
                 pygame.draw.rect(display, brick_colour, brick[0])
                 pygame.draw.rect(display, BACKGROUND, brick[0], 2)
         
 
 class paddle():
     def __init__(self):
+
         # Define paddle dimensions and attributes
         self.height = PADDLE_HEIGHT
         self.width = int(WINDOW_WIDTH / BRICK_COLS)
@@ -126,6 +136,7 @@ class paddle():
         self.direction = 0
 
     def move(self):
+
         # Reset movement
         self.direction = 0
         key = pygame.key.get_pressed()
@@ -137,12 +148,16 @@ class paddle():
             self.direction = 1
 
     def draw(self, display):
+
+        # Draw paddle
         pygame.draw.rect(display, PADDLE_COLOUR, self.rect)
         pygame.draw.rect(display, PADDLE_OUTLINE, self.rect, 3)
 
 
 class ball():
     def __init__(self, x, y):
+
+        # Define ball dimensions and attributes
         self.ball_rad = BALL_RADIUS
         self.speed_x = BALL_SPEED_X
         self.speed_y = BALL_SPEED_Y
@@ -153,6 +168,8 @@ class ball():
 
     def draw(self, display, true_ball):
         if true_ball == True:
+
+            # Draw ball in grey if it is the original ball, and white if it is a powerup ball
             pygame.draw.circle(display, PADDLE_COLOUR, (self.rect.x + self.ball_rad, self.rect.y + self.ball_rad), self.ball_rad)
             pygame.draw.circle(display, PADDLE_OUTLINE, (self.rect.x + self.ball_rad, self.rect.y + self.ball_rad), self.ball_rad, 3)
         
@@ -186,18 +203,18 @@ class ball():
                     if abs(self.rect.left - brick[0].right) < collision_threshold and self.speed_y < 0:
                         self.speed_x *= -1
                     
-                    # Damage block by 1, and delete it if the blocks health = 0
+                    # Damage block by 1 if it has at least 2 health
                     if brick_wall.brick_wall[row_count][brick_count][1] > 1:
                         brick_wall.brick_wall[row_count][brick_count][1] -= 1
-
                     else:
                         
+                        # Spawn a powerup with a 33% chance if the block is broken
                         if randint(1, 3) == 3:
-
                             powerup[0] = 1
                             powerup_pos = [brick_wall.brick_wall[row_count][brick_count][0].x, brick_wall.brick_wall[row_count][brick_count][0].y]
                             powerup.append(powerup_pos)
                         
+                        # Set the block rectangle to be invisible if the block is broken
                         brick_wall.brick_wall[row_count][brick_count][0] = (0, 0, 0, 0)
 
                 # Check if current block exists, and if it does then game over must be false
@@ -228,13 +245,20 @@ class ball():
         # Check for collision with paddle
         if self.rect.colliderect(player_paddle):
             if abs(self.rect.bottom - player_paddle.rect.top) < collision_threshold and self.speed_y > 0:
+
+                # Reverse Y direction of the ball if player hits the ball with paddle
                 self.speed_y *= -1
+
+                # Alter the X direction of the ball based on the direction the paddle is moving
                 self.speed_x += player_paddle.direction * 5
+
+                # Set the balls speed to the max speed parameter if it is above the max speed
                 if self.speed_x > BALL_MAX_SPEED:
                     self.speed_x = BALL_MAX_SPEED
                 elif self.speed_x < 0 and self.speed_x < -BALL_MAX_SPEED:
                     self.speed_x = -BALL_MAX_SPEED
-            
+        
+        # Move the ball based on its speed
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
         
@@ -242,20 +266,29 @@ class ball():
 
 class power_up:
     def __init__(self, x, y):
+
+        # Define powerup location and rectangle to be used for collision
         self.x = x
         self.y = y
         self.rect = Rect(self.x, self.y, 30, 30)
 
     def draw(self, display):
+
+        # Draw powerup image on the powerup rectangle location
         display.blit(extra_ball, (self.rect.x, self.rect.y)) 
         pygame.display.flip()
   
 
     def move(self):
+
+        # Drop the powerup after it is spawned
         self.rect.y += 2
+
+        # Remove the powerup if it hits the bottom of the screen
         if self.rect.y > WINDOW_HEIGHT:
             powerups.remove(self)
 
+        # Remove the powerup and add a ball if the player collects the powerup
         elif self.rect.colliderect(player_paddle):
             global ball_count
             powerups.remove(self)
@@ -265,6 +298,7 @@ class power_up:
 
 class breakout_game:
     def __init__(self, width = WINDOW_WIDTH, height = WINDOW_HEIGHT):
+
         # Set display resolution
         self.width = width
         self.height = height
@@ -277,22 +311,25 @@ class breakout_game:
     def play_step(self, game_over):
         self.update_ui()
         if game_over == 0:
+            if start_game == True:
+                game_over, powerup = firstBall.move()
+                for current_ball in balls:
+                    game_over, powerup = current_ball.move()
+                
+                # Add a powerup to the powerup list if the 33% chance occurs
+                if powerup[0] != 0:
+                    new_powerup = power_up(powerup[1][0], powerup[1][1])
+                    powerups.append(new_powerup)
+                
+                # Draw all powerups in the powerup list
+                for item in powerups:
+                    item.draw(self.display)
+                    item.move()
+                    pygame.display.flip()
 
-            game_over, powerup = firstBall.move()
-            for current_ball in balls:
-                game_over, powerup = current_ball.move()
-            
-            if powerup[0] != 0:
-                new_powerup = power_up(powerup[1][0], powerup[1][1])
-                powerups.append(new_powerup)
-            
-            for item in powerups:
-                item.draw(self.display)
-                item.move()
-                pygame.display.flip()
+                player_paddle.move()
 
-            player_paddle.move()
-
+            # Check if the player has missed the main ball, and if so then return -1
             if ball_count == -1:
                 game_over = -1
 
@@ -300,20 +337,25 @@ class breakout_game:
         
     def update_ui(self):
         
+        # Draw the paddle and wall
         player_paddle.draw(self.display)
         brick_wall.draw_wall(self.display)
 
+        # Create a new ball if a powerup was collected
         if len(balls) < ball_count:
             new_ball = ball(player_paddle.rect.x + player_paddle.width // 2, player_paddle.rect.y - player_paddle.height - 5)
             balls.append(new_ball)
 
+        # Draw all balls
         firstBall.draw(self.display, True)
         for current_ball in balls:
             current_ball.draw(self.display, False)
 
-        if ball_count == -1:
+        # Show the game over screen if the player misses the main ball
+        if game_over == -1:
             self.display.blit(game_over_screen, (0, 0))
 
+        # Show the you win screen if the player destroys all blocks
         if game_over == 1:
             game.display.blit(you_win_screen, (0, 0))
         pygame.display.flip()
@@ -343,7 +385,7 @@ if __name__ == '__main__':
                 quit()
 
             if event.type == pygame.MOUSEBUTTONDOWN and game_over == 0:
-                live_ball = True
+                start_game = True
 
             if event.type == pygame.MOUSEBUTTONDOWN and game_over != 0:
                 pygame.quit()
