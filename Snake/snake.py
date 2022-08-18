@@ -2,8 +2,10 @@ from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 import random
+import math
 from enum import Enum
 from collections import namedtuple
+
 
 pygame.init()
 
@@ -16,23 +18,38 @@ class Direction(Enum):
 Point = namedtuple('Point', 'x, y')
 
 # Open image files for graphics, and font for text
-snake_head = pygame.image.load('resources/snakeHead.png')
+snake_head_up = pygame.image.load('resources/snakeHeadUp.png')
+snake_head_down = pygame.image.load('resources/snakeHeadDown.png')
+snake_head_left = pygame.image.load('resources/snakeHeadLeft.png')
+snake_head_right = pygame.image.load('resources/snakeHeadRight.png')
+
+snake_head = snake_head_right
+
 snake_segment_vertical = pygame.image.load('resources/snakeSegment.png')
 snake_segment_horizontal = pygame.image.load('resources/snakeSegmentHorizontal.png')
+
+snake_segment = snake_segment_horizontal
+
 snake_tail_up = pygame.image.load('resources/snakeTailUp.png')
 snake_tail_down = pygame.image.load('resources/snakeTailDown.png')
 snake_tail_left = pygame.image.load('resources/snakeTailLeft.png')
 snake_tail_right = pygame.image.load('resources/snakeTailRight.png')
+
+snake_tail = snake_head_right
+
 snakeFood = pygame.image.load('resources/food.png')
 font = pygame.font.Font('resources/BPdotsSquareBold.otf', 25)
 
-
-# Constants
+# Constants (Do not change)
 GRIDSQUARE = 20
-SNAKE_SPEED = 10
 HIGHSCORE_FILE_PATH = 'Snake/snakeScore.txt'
+
+# Game settings
+SNAKE_SPEED = 10
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
+STARTING_SIZE = 2
+SNAKE_LOOPING = True # Change to false if you want the snake to die upon hitting a wall
 
 # Colours
 WHITE = (255, 255, 255)
@@ -69,11 +86,13 @@ class snake_game:
 
         # Set starting position of snake
         self.head = Point(self.width/2, self.height/2)
+        self.headRect = pygame.Rect(self.head.x-GRIDSQUARE/2, self.head.y-GRIDSQUARE/2, GRIDSQUARE, GRIDSQUARE)
 
         # Create starting snake (3 Segments)
-        self.snake = [self.head,
-                      Point(self.head.x-GRIDSQUARE, self.head.y),
-                      Point(self.head.x-(2*GRIDSQUARE), self.head.y)]
+        self.snake = [self.head]
+        for x in range(STARTING_SIZE):
+            self.snake.append(Point((self.head.x-x*GRIDSQUARE), self.head.y))
+
 
         # Set score and food defaults
         self.score = 0
@@ -89,15 +108,16 @@ class snake_game:
         x = random.randint(3, (self.width-GRIDSQUARE)//GRIDSQUARE-3)*GRIDSQUARE
         y = random.randint(3, (self.height-GRIDSQUARE)//GRIDSQUARE-3)*GRIDSQUARE
 
-        # Place food omn the level
+        # Place food on the level
         self.food = Point(x, y)
+        self.foodRect = pygame.Rect(self.food.x-GRIDSQUARE/2, self.food.y-GRIDSQUARE/2, GRIDSQUARE, GRIDSQUARE)
 
         # If food is inside snake, try again
-        if self.food in self.snake:
+        if self.foodRect.colliderect(self.headRect):
             self.place_food()
         
 
-    def play_step(self, last_direction):
+    def play_step(self):
 
         # Get user input
         game_over = False
@@ -110,36 +130,37 @@ class snake_game:
             if event.type == pygame.KEYDOWN:
 
                 # Left
-                if event.key == pygame.K_LEFT and last_direction is not Direction.RIGHT:
-                    self.rotate_snake(last_direction, Direction.LEFT)
-                    self.direction = last_direction = Direction.LEFT
+                if event.key == pygame.K_LEFT and self.direction != Direction.RIGHT:
+                    self.direction = Direction.LEFT
 
-                # Right
-                elif event.key == pygame.K_RIGHT and last_direction is not Direction.LEFT:
-                    self.rotate_snake(last_direction, Direction.RIGHT)
-                    self.direction = last_direction = Direction.RIGHT
+                # Right    
+                elif event.key == pygame.K_RIGHT and self.direction != Direction.LEFT:
+                    self.direction = Direction.RIGHT
 
                 # Up
-                elif event.key == pygame.K_UP and last_direction is not Direction.DOWN:
-                    self.rotate_snake(last_direction, Direction.UP)
-                    self.direction = last_direction = Direction.UP
+                elif event.key == pygame.K_UP and self.direction != Direction.DOWN:
+                    self.direction = Direction.UP
 
                 # Down
-                elif event.key == pygame.K_DOWN and last_direction is not Direction.UP:
-                    self.rotate_snake(last_direction, Direction.DOWN)
-                    self.direction = last_direction = Direction.DOWN
-                    
+                elif event.key == pygame.K_DOWN and self.direction != Direction.UP:
+                    self.direction = Direction.DOWN
+                
+                self.rotate_snake(self.direction)
+
+
+                
         # Move snake in the direction of key pressed
         self.move(self.direction)
         self.snake.insert(0, self.head)
          
-        # Check if the player hit themself or a wall, and end the game if they do
-        if self.is_hurt():
+        # Check if the player hit anything
+        collided_with_wall = self.collided()
+        if collided_with_wall == True:
             game_over = True
-            return game_over, self.score, last_direction
+            return game_over, self.score
         
         # Add 1 to the player score when the snake eats food
-        if self.head == self.food:
+        if self.foodRect.colliderect(self.headRect) or self.head == self.food:
             self.score += 1
             self.place_food()
             
@@ -152,7 +173,7 @@ class snake_game:
         self.clock.tick(SNAKE_SPEED)
         
         # Game over and score
-        return game_over, self.score, last_direction
+        return game_over, self.score
 
         
     def update_ui(self):
@@ -164,30 +185,33 @@ class snake_game:
             current_segment = self.snake[index] 
             next_segment = self.snake[index+1]
 
-            # Check if the segment is the last segment, and if it is then draws a tail depending on the direction
+            snake_segment = snake_segment_horizontal
+            # Check if the segment is the last segment, and if it is then sets the current segment to the correct tail
             if index == len(self.snake) - 2:
                 if next_segment.y == current_segment.y:
                     if next_segment.x < current_segment.x:
-                        self.display.blit(snake_tail_right, (point.x, point.y))        
+                        snake_segment = snake_tail_right
                     else:
-                        self.display.blit(snake_tail_left, (point.x, point.y))   
+                        snake_segment = snake_tail_left
 
                 elif next_segment.x == current_segment.x: 
                     if next_segment.y < current_segment.y:
-                        self.display.blit(snake_tail_down, (point.x, point.y))  
+                        snake_segment = snake_tail_down
                     else:
-                        self.display.blit(snake_tail_up, (point.x, point.y))  
-                else:
-                    print("x")
+                        snake_segment = snake_tail_up
 
-            # Draws a horizontal snake segment if the next segment in the snake is on the same y level
+                
+            # If the next segment in the snake is on the same y level and is not the tail, sets the segment to the horizontal segment
             elif current_segment.y == next_segment.y:
-                self.display.blit(snake_segment_horizontal, (point.x, point.y))
+                snake_segment = snake_segment_horizontal
 
-            # Draws a horizontal snake segment if the next segment in the snake is on the same x level
+            # If the next segment in the snake is on the same x level and is not the tail, sets the segment to the vertical segment
             elif current_segment.x == next_segment.x:
-                self.display.blit(snake_segment_vertical, (point.x, point.y))
+                snake_segment = snake_segment_vertical
             
+            # Draws the segment chosen based on the previous logic
+            self.display.blit(snake_segment, (point.x, point.y))
+
         # Draw snake head
         self.display.blit(snake_head, (self.head.x, self.head.y))
 
@@ -200,8 +224,8 @@ class snake_game:
         high_score_read.close()
 
         # Display current score and high score on screen
-        #text = font.render("Score: " + str(self.score) + " High Score: " + high_score, True, BLACK)
-        #self.display.blit(text, [0, 0])
+        text = font.render("Score: " + str(self.score) + " High Score: " + high_score, True, BLACK)
+        self.display.blit(text, [0, 0])
         pygame.display.flip()
 
 
@@ -211,94 +235,75 @@ class snake_game:
         snake_x_pos = self.head.x
         snake_y_pos = self.head.y
 
+        self.headRect = pygame.Rect(self.head.x-GRIDSQUARE/2, self.head.y-GRIDSQUARE/2, GRIDSQUARE, GRIDSQUARE)
+
         # Move snake head in direction of arrow key pressed
         if direction == Direction.RIGHT:
             snake_x_pos += GRIDSQUARE
         elif direction == Direction.LEFT:
             snake_x_pos -= GRIDSQUARE
         elif direction == Direction.UP:
-            snake_y_pos -= GRIDSQUARE
+            snake_y_pos -= GRIDSQUARE 
         elif direction == Direction.DOWN:
             snake_y_pos += GRIDSQUARE
 
         self.head = Point(snake_x_pos, snake_y_pos)
+        
 
 
-    def is_hurt(self):
+    def collided(self):
+        game_over = False
 
-        # Check if snake head hit a wall
-        if self.head.x > self.width - GRIDSQUARE or self.head.x < 0 or self.head.y > self.height - GRIDSQUARE or self.head.y < 0:
-            return True
+        # If snake looping is true, loop the snake to the other side of the screen when the snake hits a side
+        if SNAKE_LOOPING == True:
+            if self.head.x > self.width:
+                self.head = Point(-20, self.head.y)
+            elif self.head.x < 0:
+                self.head = Point(self.width, self.head.y)
+            elif self.head.y > self.height:
+                self.head = Point(self.head.x, -20)
+            elif self.head.y < 0:
+                self.head = Point(self.head.x, self.height)
+
+        # Otherwise, check if snake head hit a wall and end the game if so
+        else:
+            if self.head.x > self.width - GRIDSQUARE or self.head.x < 0 or self.head.y > self.height - GRIDSQUARE or self.head.y < 0:
+                game_over = True
 
         # Check if snake head hit snake body
         if self.head in self.snake[1:]:
-            return True
+            game_over = True
 
-        return False
+        return game_over
 
 
-    def rotate_snake(self, last_direction, new_direction):
+    def rotate_snake(self, new_direction):
 
-        # Get global image files that make up the snake
         global snake_head
-        global snake_segment
+        # Set the current snake head graphic based on the direction the snake is moving
+        match new_direction:
 
-        #Rotate the snake head and segments based on which direction the snake changed to, and what the last direction was
-        match last_direction:
-
-            # Was moving right
+            # moving right
             case Direction.RIGHT:
-                match new_direction:
-                    
-                    # Changed direction to up
-                    case Direction.UP:
-                        snake_head = pygame.transform.rotate(snake_head, 90)
-
-                    # Changed direction to down
-                    case Direction.DOWN:
-                        snake_head = pygame.transform.rotate(snake_head, 270)
+                snake_head = snake_head_right
             
             # Was moving up
             case Direction.UP:
-                match new_direction:
-
-                    # Changed direction to left
-                    case Direction.LEFT:
-                        snake_head = pygame.transform.rotate(snake_head, 90)
-
-                    # Changed direction to right
-                    case Direction.RIGHT:
-                        snake_head = pygame.transform.rotate(snake_head, -90)
+                snake_head = snake_head_up
 
             # Was moving down
             case Direction.DOWN:
-                match new_direction:
-
-                    # Changed direction to left
-                    case Direction.LEFT:
-                        snake_head = pygame.transform.rotate(snake_head, 270)
-
-                    # Changed direction to right
-                    case Direction.RIGHT:
-                        snake_head = pygame.transform.rotate(snake_head, -270)
+                snake_head = snake_head_down
 
             # Was moving left                     
             case Direction.LEFT:
-                match new_direction:
+                snake_head = snake_head_left
+        
 
-                    # Changed direction to up
-                    case Direction.UP:
-                        snake_head = pygame.transform.rotate(snake_head, -90)
-
-                    # Changed direction to down
-                    case Direction.DOWN:
-                        snake_head = pygame.transform.rotate(snake_head, -270)
-    
     def start_game(self):
         game = snake_game()
-        last_direction = Direction.RIGHT
         while True:
-            game_over, score, last_direction = game.play_step(last_direction)
+            game_over, score = game.play_step()
             if game_over == True:
                 break
     
@@ -315,7 +320,7 @@ class snake_game:
         print('Final Score', score, 'High Score', high_score)
 
 # Start the game    
-#snake_game_instance = snake_game()
-#snake_game_instance.start_game()
+snake_game_instance = snake_game()
+snake_game_instance.start_game()
     
 pygame.quit()
