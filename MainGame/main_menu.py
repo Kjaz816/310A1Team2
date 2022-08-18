@@ -27,22 +27,24 @@ font = pygame.font.SysFont('arial', 25)
 
 # Game buttons
 snake_image = pygame.image.load(
-    "MainGame/Buttons/snakeimg.png").convert_alpha()
+    "MainGame/Buttons/SnakeButton.png").convert_alpha()
 breakout_image = pygame.image.load(
-    "MainGame/Buttons/breakoutimg.png").convert_alpha()
+    "MainGame/Buttons/BreakoutButton.png").convert_alpha()
 
 # Button texts
-snake_title = font.render("Snake", True, 'green')
-breakout_title = font.render("Breakout", True, 'green')
+play_title = font.render("Click to Play!", True, 'white')
 
+play_text = ScreenItem(0, 0, play_title)
 
 snake_button = ScreenItem(263.67, 540, snake_image)
-snake_text = ScreenItem(263.67, 450, snake_title)
-breakout_button = ScreenItem(600, 540, breakout_image)
-breakout_text = ScreenItem(600, 540, breakout_title)
+breakout_button = ScreenItem(657.54, 540, breakout_image)
 
-snake_text_show = False
-breakout_text_show = False
+play_text_show = False
+
+def set_play_text(button):
+    play_text.x = button.x
+    play_text.y = button.y + 120
+    play_text.rect = play_text.image.get_rect(center=(play_text.x, play_text.y))
 
 running = True
 while running:
@@ -70,24 +72,23 @@ while running:
         if event.type == pygame.MOUSEMOTION:
             # Activate Snake
             if snake_button.mouse_over_button(pygame.mouse.get_pos()):
-                snake_text_show = True
+                set_play_text(snake_button)
+                play_text_show = True
 
             # Activate Breakout
             elif breakout_button.mouse_over_button(pygame.mouse.get_pos()):
-                breakout_text_show = True
+                set_play_text(breakout_button)
+                play_text_show = True
 
             else:
-                snake_text_show = False                
-                breakout_text_show = False
+                play_text_show = False
 
     window.fill("black")
 
     snake_button.update()
     breakout_button.update()
-    if snake_text_show == True:
-        snake_text.update()
-    if breakout_text_show == True:
-        breakout_text.update()
+    if play_text_show == True:
+        play_text.update()
 
 
     pygame.display.update()
