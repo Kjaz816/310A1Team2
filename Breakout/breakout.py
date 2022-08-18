@@ -39,10 +39,11 @@ FAKE_BALL_COLOUR = (255, 255, 255)
 
 # Paddle setup (Do not change)
 PADDLE_HEIGHT = 15
+PADDLE_WIDTH = 140
 PADDLE_Y_POS = WINDOW_HEIGHT - 3 * (PADDLE_HEIGHT / 2)
 
 # Game Settings 
-level = 2  #(1, 2, or anything else for randomly generated level)
+level = 3  #(1, 2, or anything else for randomly generated level)
 BALL_RADIUS = 10
 BALL_SPEED_X = 4
 BALL_SPEED_Y = -4
@@ -130,7 +131,7 @@ class paddle():
 
         # Define paddle dimensions and attributes
         self.height = PADDLE_HEIGHT
-        self.width = int(WINDOW_WIDTH / BRICK_COLS)
+        self.width = PADDLE_WIDTH
         self.x = int((WINDOW_WIDTH/2) - (self.width / 2))
         self.y = PADDLE_Y_POS
         self.speed = PADDLE_SPEED
@@ -229,7 +230,7 @@ class ball():
         # Check if all blocks are gone, and if they are then set game_over to 1
         if game_won == True:
             self.game_over = 1
-            print("done")
+
 
         # Check for wall collisions
         if self.rect.left < 0 or self.rect.right > WINDOW_WIDTH:
@@ -250,7 +251,7 @@ class ball():
 
                 # Reverse Y direction of the ball if player hits the ball with paddle
                 self.speed_y *= -1
-
+                print(player_paddle.rect.left - self.rect.left)
                 # Alter the X direction of the ball based on the direction the paddle is moving
                 self.speed_x += player_paddle.direction * 5
 
