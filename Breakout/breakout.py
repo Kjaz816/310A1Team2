@@ -9,11 +9,11 @@ from random import randint
 pygame.init()
 
 # Open image files for graphics
-game_over_screen = pygame.image.load('resources/gameOverScreenBreakout.png')
-you_win_screen = pygame.image.load('resources/winScreenBreakout.png')
-press_to_start_screen = pygame.image.load('resources/pressToStartScreenBreakout.png')
+game_over_screen = pygame.image.load('Breakout/resources/gameOverScreenBreakout.png')
+you_win_screen = pygame.image.load('Breakout/resources/winScreenBreakout.png')
+press_to_start_screen = pygame.image.load('Breakout/resources/pressToStartScreenBreakout.png')
 
-extra_ball = pygame.image.load('resources/extraBall.png')
+extra_ball = pygame.image.load('Breakout/resources/extraBall.png')
 
 # Window resolution (Default 1280 x 720)
 WINDOW_WIDTH = 1280
@@ -43,9 +43,9 @@ PADDLE_WIDTH = 140
 PADDLE_Y_POS = WINDOW_HEIGHT - 3 * (PADDLE_HEIGHT / 2)
 
 # Game Settings 
-level = 3  #(1, 2, or anything else for randomly generated level)
+level = 2  #(1, 2, or anything else for randomly generated level)
 BALL_RADIUS = 10
-BALL_SPEED_X = 4
+BALL_SPEED_X = 0
 BALL_SPEED_Y = -4
 PADDLE_SPEED = 10
 BALL_MAX_SPEED = 5
@@ -251,9 +251,9 @@ class ball():
 
                 # Reverse Y direction of the ball if player hits the ball with paddle
                 self.speed_y *= -1
-                print(player_paddle.rect.left - self.rect.left)
+                collision_pos = player_paddle.rect.left - PADDLE_WIDTH / 2 - self.rect.left
                 # Alter the X direction of the ball based on the direction the paddle is moving
-                self.speed_x += player_paddle.direction * 5
+                self.speed_x += -((collision_pos / 20) + 6.5) * 2
 
                 # Set the balls speed to the max speed parameter if it is above the max speed
                 if self.speed_x > BALL_MAX_SPEED:
@@ -387,8 +387,6 @@ if __name__ == '__main__':
     
 
     while True:
-        
-        
         clock.tick(fps)
         game_over = game.play_step(game_over)
         game.display.fill(BACKGROUND)
