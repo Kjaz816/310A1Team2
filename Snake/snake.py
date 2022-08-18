@@ -40,6 +40,10 @@ snake_tail = snake_head_right
 snakeFood = pygame.image.load('Snake/resources/food.png')
 font = pygame.font.Font('Snake/resources/BPdotsSquareBold.otf', 25)
 
+game_over_screen = pygame.image.load('Snake/resources/gameOverScreenSnake.png')
+
+game_over = False
+
 # Constants (Do not change)
 GRIDSQUARE = 20
 HIGHSCORE_FILE_PATH = 'Snake/snakeScore.txt'
@@ -48,7 +52,7 @@ HIGHSCORE_FILE_PATH = 'Snake/snakeScore.txt'
 SNAKE_SPEED = 10
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
-STARTING_SIZE = 2
+STARTING_SIZE = 3
 SNAKE_LOOPING = True # Change to false if you want the snake to die upon hitting a wall
 
 # Colours
@@ -117,35 +121,28 @@ class snake_game:
             self.place_food()
         
 
-    def play_step(self):
-
+    def play_step(self, game_over):
+        
         # Get user input
-        game_over = False
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+        key = pygame.key.get_pressed()
 
-            # Set direction to whichever arrow key is pressed
-            if event.type == pygame.KEYDOWN:
+        # Left
+        if key[pygame.K_LEFT] and self.direction != Direction.RIGHT:
+            self.direction = Direction.LEFT
 
-                # Left
-                if event.key == pygame.K_LEFT and self.direction != Direction.RIGHT:
-                    self.direction = Direction.LEFT
+        # Right    
+        elif key[pygame.K_RIGHT] and self.direction != Direction.LEFT:
+            self.direction = Direction.RIGHT
 
-                # Right    
-                elif event.key == pygame.K_RIGHT and self.direction != Direction.LEFT:
-                    self.direction = Direction.RIGHT
+        # Up
+        elif key[pygame.K_UP] and self.direction != Direction.DOWN:
+            self.direction = Direction.UP
 
-                # Up
-                elif event.key == pygame.K_UP and self.direction != Direction.DOWN:
-                    self.direction = Direction.UP
-
-                # Down
-                elif event.key == pygame.K_DOWN and self.direction != Direction.UP:
-                    self.direction = Direction.DOWN
-                
-                self.rotate_snake(self.direction)
+        # Down
+        elif key[pygame.K_DOWN] and self.direction != Direction.UP:
+            self.direction = Direction.DOWN
+        
+        self.rotate_snake(self.direction)
 
 
                 
@@ -301,12 +298,44 @@ class snake_game:
         
 
     def start_game(self):
+        global game_over
         game = snake_game()
+        while game_over == False:
+            game_over, score = game.play_step(game_over)
+
+                
+            for event in pygame.event.get():    
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN and game_over == True:
+                    pygame.quit()
+                    quit()
+
         while True:
-            game_over, score = game.play_step()
-            if game_over == True:
-                break
-    
+            
+            self.display.blit(game_over_screen, (0, 0))
+            pygame.display.flip()
+            
+            for event in pygame.event.get():    
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+                if event.type == pygame.KEYDOWN:
+                    game_over = False 
+                    self.start_game()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pygame.quit()
+                    quit()
+
+            clock = pygame.time.Clock()
+            clock.tick(60)
+
+            
+
         # Open high score file and change high score if current game beat it
         with open(HIGHSCORE_FILE_PATH, "r") as high_score_read:
             high_score = high_score_read.readline()
