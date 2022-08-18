@@ -1,4 +1,5 @@
 from os import environ
+from tracemalloc import start
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 from pygame.locals import Rect
@@ -14,6 +15,7 @@ you_win_screen = pygame.image.load('Breakout/resources/winScreenBreakout.png')
 press_to_start_screen = pygame.image.load('Breakout/resources/pressToStartScreenBreakout.png')
 
 extra_ball = pygame.image.load('Breakout/resources/extraBall.png')
+strong_ball = pygame.image.load('Breakout/resources/strongBall.png')
 
 # Window resolution (Default 1280 x 720)
 WINDOW_WIDTH = 1280
@@ -43,7 +45,7 @@ PADDLE_WIDTH = 140
 PADDLE_Y_POS = WINDOW_HEIGHT - 3 * (PADDLE_HEIGHT / 2)
 
 # Game Settings 
-level = 2  #(1, 2, or anything else for randomly generated level)
+level = 1  #(1, 2, or anything else for randomly generated level)
 BALL_RADIUS = 10
 BALL_SPEED_X = 0
 BALL_SPEED_Y = -4
@@ -168,6 +170,7 @@ class ball():
         self.y = y
         self.rect = Rect(self.x, self.y, self.ball_rad * 2, self.ball_rad * 2)
         self.game_over = 0
+        self.invincible = False
 
     def draw(self, display, true_ball):
         if true_ball == True:
@@ -184,7 +187,7 @@ class ball():
         powerup = []
         powerup.append(0)
         collision_threshold = 5
-
+        
         game_won = True
 
         row_count = 0
@@ -195,16 +198,20 @@ class ball():
                     # Check where collision came from
                     # Above:
                     if abs(self.rect.bottom - brick[0].top) < collision_threshold and self.speed_y > 0:
-                        self.speed_y *= -1
+                        if self.invincible == False:
+                            self.speed_y *= -1
                     # Below:
                     if abs(self.rect.top - brick[0].bottom) < collision_threshold and self.speed_y < 0:
-                        self.speed_y *= -1
+                        if self.invincible == False:
+                            self.speed_y *= -1
                     # Left:
                     if abs(self.rect.right - brick[0].left) < collision_threshold and self.speed_y > 0:
-                        self.speed_x *= -1
+                        if self.invincible == False:
+                            self.speed_x *= -1
                     # Right:
                     if abs(self.rect.left - brick[0].right) < collision_threshold and self.speed_y < 0:
-                        self.speed_x *= -1
+                        if self.invincible == False:
+                            self.speed_x *= -1
                     
                     # Damage block by 1 if it has at least 2 health
                     if brick_wall.brick_wall[row_count][brick_count][1] > 1:
@@ -213,7 +220,7 @@ class ball():
                         
                         # Spawn a powerup with a 33% chance if the block is broken
                         if randint(1, 3) == 3:
-                            powerup[0] = 1
+                            powerup[0] = randint(1, 2)
                             powerup_pos = [brick_wall.brick_wall[row_count][brick_count][0].x, brick_wall.brick_wall[row_count][brick_count][0].y]
                             powerup.append(powerup_pos)
                         
@@ -237,6 +244,7 @@ class ball():
             self.speed_x *= -1
         if self.rect.top < 0:
             self.speed_y *= -1
+            self.invincible = False
         
         # Check if player missed the ball
         if self.rect.bottom > WINDOW_HEIGHT + BALL_RADIUS * 2:
@@ -268,17 +276,24 @@ class ball():
         return self.game_over, powerup
 
 class power_up:
-    def __init__(self, x, y):
-
+    def __init__(self, type, x, y):
+        self.power_up_type = ""
         # Define powerup location and rectangle to be used for collision
         self.x = x
         self.y = y
         self.rect = Rect(self.x, self.y, 30, 30)
+        if type == 1:
+            self.power_up_type = "extra_ball"
+        elif type == 2:
+            self.power_up_type = "strong_ball"
 
     def draw(self, display):
 
-        # Draw powerup image on the powerup rectangle location
-        display.blit(extra_ball, (self.rect.x, self.rect.y)) 
+        # Draw correct powerup image on the powerup rectangle location
+        if self.power_up_type == "extra_ball":
+            display.blit(extra_ball, (self.rect.x, self.rect.y)) 
+        elif self.power_up_type == "strong_ball":
+            display.blit(strong_ball, (self.rect.x, self.rect.y)) 
         pygame.display.flip()
   
 
@@ -293,10 +308,17 @@ class power_up:
 
         # Remove the powerup and add a ball if the player collects the powerup
         elif self.rect.colliderect(player_paddle):
-            global ball_count
-            powerups.remove(self)
-            ball_count += 1
-            
+            if self.power_up_type == "extra_ball":
+                global ball_count
+                powerups.remove(self)
+                ball_count += 1
+
+            elif self.power_up_type == "strong_ball":
+                firstBall.invincible = True
+
+                 
+
+                
 
 
 class breakout_game:
@@ -321,7 +343,7 @@ class breakout_game:
                 
                 # Add a powerup to the powerup list if the 33% chance occurs
                 if powerup[0] != 0:
-                    new_powerup = power_up(powerup[1][0], powerup[1][1])
+                    new_powerup = power_up(powerup[0], powerup[1][0], powerup[1][1])
                     powerups.append(new_powerup)
                 
                 # Draw all powerups in the powerup list
@@ -339,8 +361,6 @@ class breakout_game:
         return game_over
         
     def update_ui(self):
-
-        
 
         # Draw the paddle and wall
         player_paddle.draw(self.display)
