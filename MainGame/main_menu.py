@@ -30,12 +30,15 @@ snake_image = pygame.image.load(
     "MainGame/Buttons/SnakeButton.png").convert_alpha()
 breakout_image = pygame.image.load(
     "MainGame/Buttons/BreakoutButton.png").convert_alpha()
+quit_image = pygame.image.load(
+    "MainGame/Buttons/QuitButton.png").convert_alpha()
 
 # Button texts
 play_title = font.render("Click to Play!", True, 'white')
 
 play_text = ScreenItem(0, 0, play_title)
 
+quit_button = ScreenItem(1180, 670, quit_image)
 snake_button = ScreenItem(263.67, 540, snake_image)
 breakout_button = ScreenItem(657.54, 540, breakout_image)
 
@@ -55,10 +58,14 @@ while running:
             pygame.quit()
             sys.exit()
 
-        # User tried to click
+        # User tried to click:
+        # Quit Arcade
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if quit_button.mouse_over_button(pygame.mouse.get_pos()):
+                pygame.quit()
+                sys.exit()
             # Activate Snake
-            if snake_button.mouse_over_button(pygame.mouse.get_pos()):
+            elif snake_button.mouse_over_button(pygame.mouse.get_pos()):
                 print("snake clicked")
 
             # Activate Breakout
@@ -80,6 +87,7 @@ while running:
                 set_play_text(breakout_button)
                 play_text_show = True
 
+            # If user is doing nothing
             else:
                 play_text_show = False
 
@@ -87,6 +95,7 @@ while running:
 
     snake_button.update()
     breakout_button.update()
+    quit_button.update()
     if play_text_show == True:
         play_text.update()
 
