@@ -97,7 +97,6 @@ class snake_game:
         for x in range(STARTING_SIZE):
             self.snake.append(Point((self.head.x-x*GRIDSQUARE), self.head.y))
 
-
         # Set score and food defaults
         self.score = 0
         self.food = None
@@ -143,9 +142,7 @@ class snake_game:
             self.direction = Direction.DOWN
         
         self.rotate_snake(self.direction)
-
-
-                
+  
         # Move snake in the direction of key pressed
         self.move(self.direction)
         self.snake.insert(0, self.head)
@@ -172,7 +169,7 @@ class snake_game:
         # Game over and score
         return game_over, self.score
 
-        
+
     def update_ui(self):
         
         # Set background to grass colour
@@ -196,8 +193,7 @@ class snake_game:
                         snake_segment = snake_tail_down
                     else:
                         snake_segment = snake_tail_up
-
-                
+       
             # If the next segment in the snake is on the same y level and is not the tail, sets the segment to the horizontal segment
             elif current_segment.y == next_segment.y:
                 snake_segment = snake_segment_horizontal
@@ -245,7 +241,6 @@ class snake_game:
             snake_y_pos += GRIDSQUARE
 
         self.head = Point(snake_x_pos, snake_y_pos)
-        
 
 
     def collided(self):
@@ -295,14 +290,13 @@ class snake_game:
             # Was moving left                     
             case Direction.LEFT:
                 snake_head = snake_head_left
-        
+
 
     def start_game(self):
         global game_over
         game = snake_game()
         while game_over == False:
             game_over, score = game.play_step(game_over)
-
                 
             for event in pygame.event.get():    
                 if event.type == pygame.QUIT:
@@ -313,29 +307,33 @@ class snake_game:
                     pygame.quit()
                     quit()
 
+        
         while True:
-            
             self.display.blit(game_over_screen, (0, 0))
             pygame.display.flip()
             
+            # Wait 1 second after the game is over before accepting inputs in order to combat accidental keypresses
             for event in pygame.event.get():    
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
 
                 if event.type == pygame.KEYDOWN:
-                    game_over = False 
-                    self.start_game()
+                    if event.key == pygame.K_SPACE:
+                        self.set_high_score(score)
+                        game_over = False 
+                        self.start_game()
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.set_high_score(score)
                     pygame.quit()
                     quit()
+                    
 
             clock = pygame.time.Clock()
             clock.tick(60)
 
-            
-
+    def set_high_score(self, score):
         # Open high score file and change high score if current game beat it
         with open(HIGHSCORE_FILE_PATH, "r") as high_score_read:
             high_score = high_score_read.readline()
@@ -347,6 +345,7 @@ class snake_game:
         high_score_read.close()
 
         print('Final Score', score, 'High Score', high_score)
+        
 
 # Start the game    
 snake_game_instance = snake_game()
