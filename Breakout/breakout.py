@@ -342,7 +342,7 @@ class breakout_game:
                 if powerup[0] != 0 and firstBall.invincible == False:
                     new_powerup = power_up(powerup[0], powerup[1][0], powerup[1][1])
 
-                    # Only create a new strong ball powerup if none currently exists
+                    # Only create a new strong ball powerup if none currently exist
                     if new_powerup.power_up_type == "strong_ball":
                         strong_ball_exists = False
                         for item in powerups:
