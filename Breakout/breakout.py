@@ -315,10 +315,7 @@ class power_up:
 
             elif self.power_up_type == "strong_ball":
                 firstBall.invincible = True
-
-                 
-
-                
+                powerups.remove(self)
 
 
 class breakout_game:
