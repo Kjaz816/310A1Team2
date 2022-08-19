@@ -339,9 +339,22 @@ class breakout_game:
                     game_over, powerup = current_ball.move()
                 
                 # Add a powerup to the powerup list if the 33% chance occurs
-                if powerup[0] != 0:
+                if powerup[0] != 0 and firstBall.invincible == False:
                     new_powerup = power_up(powerup[0], powerup[1][0], powerup[1][1])
-                    powerups.append(new_powerup)
+
+                    # Only create a new strong ball powerup if none currently exists
+                    if new_powerup.power_up_type == "strong_ball":
+                        strong_ball_exists = False
+                        for item in powerups:
+                            if item.power_up_type == "strong_ball":
+                                strong_ball_exists = True
+                            
+                        if strong_ball_exists == False:
+                            powerups.append(new_powerup)
+                    
+                    else: 
+                        powerups.append(new_powerup)
+                    
                 
                 # Draw all powerups in the powerup list
                 for item in powerups:
